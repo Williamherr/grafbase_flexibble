@@ -1,20 +1,21 @@
 "use client";
-import { SessionInterface } from "@/common.types";
+import { ProjectInterface, SessionInterface } from "@/common.types";
 import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 import FormFields from "./FormFields";
 import { categoryFilters } from "@/constants";
 import CustomMenu from "./CustomMenu";
 import Button from "./Button";
-import { createNewProject, fetchToken } from "@/lib/actions";
+import { createNewProject, fetchToken, updateProject } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 
 type Props = {
   type: string;
   session: SessionInterface;
+  project?: ProjectInterface;
 };
 
-const ProjectForm = ({ type, session }: Props) => {
+const ProjectForm = ({ type, session, project }: Props) => {
   const rounter = useRouter();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -26,6 +27,10 @@ const ProjectForm = ({ type, session }: Props) => {
     try {
       if (type === "create") {
         await createNewProject(form, session?.user?.id, token);
+        rounter.push("/");
+      }
+      if (type === "edit") {
+        await updateProject(form, project?.id as string, token);
         rounter.push("/");
       }
     } catch (error: any) {
@@ -69,12 +74,12 @@ const ProjectForm = ({ type, session }: Props) => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
-    image: "",
-    title: "",
-    description: "",
-    liveSiteUrl: "",
-    githubUrl: "",
-    category: "",
+    image: project?.image || "",
+    title: project?.title || "",
+    description: project?.description || "",
+    liveSiteUrl: project?.liveSiteUrl || "",
+    githubUrl: project?.githubUrl || "",
+    category: project?.category || "",
   });
   return (
     <form onSubmit={handleFormSubmit} className="flexStart form">
@@ -89,15 +94,15 @@ const ProjectForm = ({ type, session }: Props) => {
             className="form_image-input"
             onChange={handleChangeImage}
           />
+          {form.image && (
+            <Image
+              src={form?.image}
+              className="sm:p-10 object-contain z-20"
+              alt="Project poster"
+              fill
+            />
+          )}
         </label>
-        {form.image && (
-          <Image
-            src={form?.image}
-            className="sm:p-10 object-contain z-20"
-            alt="Project poster"
-            fill
-          />
-        )}
       </div>
       <FormFields
         title="Title"
